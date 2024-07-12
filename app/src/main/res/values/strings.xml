@@ -98,7 +98,7 @@
     <string name="allow" translatable="false">Allow</string>
     <string name="always_warn" translatable="false">Show warning every time</string>
     <string name="appbar_scrolling_view_behavior" translatable="false">com.google.android.material.appbar.AppBarLayout$ScrollingViewBehavior</string>
-    <string name="applicationLabel" translatable="false">Phone</string>
+    <string name="applicationLabel" translatable="false">D-AI-ler</string>
     <string name="assisted_dialing_country_code_entry" translatable="false">Assisted dialing: Used country code +%1$s</string>
     <string name="assisted_dialing_country_code_entry_failure" translatable="false">Assisted dialing was used</string>
     <string name="assisted_dialing_setting_cc_category_title" translatable="false">Home country</string>
