@@ -69,8 +69,6 @@ public class CallButtonPresenter
         Listener,
         InCallButtonUiDelegate {
 
-    private static final String KEY_RECORDING_WARNING_PRESENTED = "recording_warning_presented";
-
     private static final String KEY_AUTOMATICALLY_MUTED_BY_ADD_CALL =
             "incall_key_automatically_muted_by_add_call";
     private static final String KEY_PREVIOUS_MUTE_STATE = "incall_key_previous_mute_state";
@@ -586,7 +584,7 @@ public class CallButtonPresenter
         }
         inCallButtonUi.showButton(InCallButtonIds.BUTTON_DIALPAD, true);
         inCallButtonUi.showButton(InCallButtonIds.BUTTON_MERGE, showMerge);
-        inCallButtonUi.showButton(InCallButtonIds.BUTTON_RECORD_CALL, true);
+        inCallButtonUi.showButton(InCallButtonIds.BUTTON_RECORD_CALL, showCallRecordOption);
 
         inCallButtonUi.updateButtonStates();
     }
