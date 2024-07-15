@@ -46,6 +46,7 @@ import com.android.incallui.incall.protocol.InCallButtonUi;
 import com.android.incallui.incall.protocol.InCallButtonUiDelegate;
 import com.android.incallui.multisim.SwapSimWorker;
 import com.android.incallui.videotech.utils.VideoUtils;
+import com.fissy.dialer.callrecord.impl.CallRecorderService;
 import com.fissy.dialer.common.Assert;
 import com.fissy.dialer.common.LogUtil;
 import com.fissy.dialer.common.concurrent.DialerExecutorComponent;
@@ -53,7 +54,7 @@ import com.fissy.dialer.logging.DialerImpression;
 import com.fissy.dialer.logging.DialerImpression.Type;
 import com.fissy.dialer.logging.Logger;
 import com.fissy.dialer.telecom.TelecomUtil;
-
+import com.fissy.dialer.callrecord.impl.CallRecorderService;
 import java.util.Objects;
 
 /**
@@ -67,8 +68,6 @@ public class CallButtonPresenter
         CanAddCallListener,
         Listener,
         InCallButtonUiDelegate {
-
-    private static final String KEY_RECORDING_WARNING_PRESENTED = "recording_warning_presented";
 
     private static final String KEY_AUTOMATICALLY_MUTED_BY_ADD_CALL =
             "incall_key_automatically_muted_by_add_call";
@@ -549,7 +548,8 @@ public class CallButtonPresenter
                         && call.getState() != DialerCallState.CONNECTING;
 
         final CallRecorder recorder = CallRecorder.getInstance();
-        final boolean showCallRecordOption = true;
+        final boolean showCallRecordOption = recorder.canRecordInCurrentCountry()
+                && !isVideo && call.getState() == DialerCallState.ACTIVE && CallRecorderService.isEnabled(context);
 
         otherAccount = TelecomUtil.getOtherAccount(getContext(), call.getAccountHandle());
         boolean showSwapSim =

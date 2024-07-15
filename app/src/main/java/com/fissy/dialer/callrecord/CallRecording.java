@@ -17,6 +17,7 @@
 package com.fissy.dialer.callrecord;
 
 import android.content.ContentValues;
+import android.os.Environment;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.provider.MediaStore;
@@ -64,7 +65,7 @@ public final class CallRecording implements Parcelable {
     public static ContentValues generateMediaInsertValues(String fileName, long creationTime) {
         final ContentValues cv = new ContentValues(5);
 
-        cv.put(MediaStore.Audio.Media.RELATIVE_PATH, "Recordings/Call recordings");
+        cv.put(MediaStore.Audio.Media.RELATIVE_PATH, Environment.DIRECTORY_MUSIC + "/Call recordings");
         cv.put(MediaStore.Audio.Media.DISPLAY_NAME, fileName);
         cv.put(MediaStore.Audio.Media.DATE_TAKEN, creationTime);
         cv.put(MediaStore.Audio.Media.IS_PENDING, 1);
@@ -76,6 +77,7 @@ public final class CallRecording implements Parcelable {
 
         return cv;
     }
+
 
     public static ContentValues generateCompletedValues() {
         final ContentValues cv = new ContentValues(1);

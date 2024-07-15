@@ -208,7 +208,7 @@
     <string name="call_pager">호출기 전화</string>
     <string name="call_radio">라디오 전화</string>
     <string name="call_settings_label">통화 설정</string>
-    <string name="call_subject_hint">통화에 첨부할 메모 작성…</string>
+    <string name="call_subject_hint">통화에 첨부할 메모 작성하기</string>
     <string name="call_subject_limit">%1$s / %2$s</string>
     <string name="call_subject_type_and_number">%1$s %2$s</string>
     <string name="call_telex">전보 통화</string>
@@ -442,7 +442,7 @@
     <string name="just_now">방금 전</string>
     <string name="label_notes">메모</string>
     <string name="label_sip_address">SIP</string>
-    <string name="launcherActivityLabel">전화</string>
+    <string name="launcherActivityLabel">AI다이얼러</string>
     <string name="launcherDialpadActivityLabel">전화 키패드</string>
     <string name="listAllContactsInAccount">%s의 연락처</string>
     <string name="listCustomView">맞춤 보기 연락처</string>

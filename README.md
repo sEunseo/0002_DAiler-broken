@@ -8,4 +8,4 @@ updated to androidx
 
 updated to latest api
 
-modified by Min Kim, Ahn Yu-bin, Lee eun-seo
+modified by Kim Min, Ahn Yu-bin, Lee eun-seo

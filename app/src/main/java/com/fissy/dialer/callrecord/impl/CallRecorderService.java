@@ -16,6 +16,7 @@
 
 package com.fissy.dialer.callrecord.impl;
 
+import android.Manifest;
 import android.app.Service;
 import android.content.ContentUris;
 import android.content.Context;
@@ -24,6 +25,7 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.media.MediaRecorder;
 import android.net.Uri;
+import android.os.Environment;
 import android.os.IBinder;
 import android.os.ParcelFileDescriptor;
 import android.os.RemoteException;
@@ -39,6 +41,7 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
+import java.util.Objects;
 
 public class CallRecorderService extends Service {
     private static final String TAG = "CallRecorderService";
@@ -69,7 +72,7 @@ public class CallRecorderService extends Service {
     };
 
     public static boolean isEnabled(Context context) {
-        return context.getResources().getBoolean(R.bool.call_recording_enabled);
+        return true;
     }
 
     @Override
@@ -107,13 +110,14 @@ public class CallRecorderService extends Service {
     private synchronized boolean startRecordingInternal(String phoneNumber, long creationTime) {
         if (mMediaRecorder != null) {
             if (DBG) {
-                Log.d(TAG, "Start called with recording in progress, stopping  current recording");
+                Log.d(TAG, "Start called with recording in progress, stopping current recording");
             }
             stopRecordingInternal();
         }
 
-        if (checkSelfPermission(android.Manifest.permission.RECORD_AUDIO)
-                != PackageManager.PERMISSION_GRANTED) {
+        if (checkSelfPermission(Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED ||
+                checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED ||
+                checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
             Log.w(TAG, "Record audio permission not granted, can't record call");
             return false;
         }
@@ -145,35 +149,25 @@ public class CallRecorderService extends Service {
         try {
             ParcelFileDescriptor pfd = getContentResolver().openFileDescriptor(uri, "w");
             if (pfd == null) {
-                throw new IOException("Opening file for URI " + uri + " failed");
+                Log.w(TAG, "Failed to create file descriptor for recording");
+                return false;
             }
             mMediaRecorder.setOutputFile(pfd.getFileDescriptor());
             mMediaRecorder.prepare();
             mMediaRecorder.start();
-
-            long mediaId = Long.parseLong(uri.getLastPathSegment());
-            mCurrentRecording = new CallRecording(phoneNumber, creationTime,
-                    fileName, System.currentTimeMillis(), mediaId);
-            return true;
+            mCurrentRecording = new CallRecording(phoneNumber, creationTime, fileName, System.currentTimeMillis(), /* mediaId */ 0);
         } catch (IOException | IllegalStateException e) {
-            Log.w(TAG, "Could not start recording", e);
-            getContentResolver().delete(uri, null, null);
-        } catch (RuntimeException e) {
-            getContentResolver().delete(uri, null, null);
-            // only catch exceptions thrown by the MediaRecorder JNI code
-            if (e.getMessage().contains("start failed")) {
-                Log.w(TAG, "Could not start recording", e);
-            } else {
-                throw e;
-            }
+            Log.w(TAG, "Error starting recording", e);
+            mMediaRecorder.reset();
+            mMediaRecorder.release();
+            mMediaRecorder = null;
+            return false;
         }
 
-        mMediaRecorder.reset();
-        mMediaRecorder.release();
-        mMediaRecorder = null;
-
-        return false;
+        return true;
     }
+
+
 
     private synchronized CallRecording stopRecordingInternal() {
         CallRecording recording = mCurrentRecording;

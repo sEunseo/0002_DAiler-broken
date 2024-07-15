@@ -442,7 +442,7 @@
     <string name="just_now" translatable="false">Just now</string>
     <string name="label_notes" translatable="false">Notes</string>
     <string name="label_sip_address" translatable="false">SIP</string>
-    <string name="launcherActivityLabel" translatable="false">Phone</string>
+    <string name="launcherActivityLabel" translatable="false">D-Ai-ler</string>
     <string name="launcherDialpadActivityLabel" translatable="false">Phone Keypad</string>
     <string name="listAllContactsInAccount" translatable="false">Contacts in %s</string>
     <string name="listCustomView" translatable="false">Contacts in custom view</string>
@@ -559,8 +559,8 @@
     <string name="permission_no_contacts" translatable="false">To see your contacts, turn on the Contacts permission.</string>
     <string name="permission_no_speeddial" translatable="false">To enable speed dial, turn on the Contacts permission.</string>
     <string name="permission_single_turn_on" translatable="false">Turn on</string>
-    <string name="phoneAppLabel" translatable="false">Phone</string>
-    <string name="phoneLabelsGroup" translatable="false">Phone</string>
+    <string name="phoneAppLabel" translatable="false">D-Ai-ler</string>
+    <string name="phoneLabelsGroup" translatable="false">D-Ai-ler</string>
     <string name="phone_account_settings_label" translatable="false">Calling accounts</string>
     <string name="post_call_add_message" translatable="false">Add message</string>
     <string name="post_call_message" translatable="false">Say why you called</string>
