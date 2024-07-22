@@ -113,9 +113,6 @@
             android:directBootAware="true"
             android:exported="false" />
 
-        <activity android:name=".PermissionRequestActivity"
-            android:theme="@style/Theme.AppCompat.Light.DarkActionBar" />
-
         <service
             android:name="com.fissy.dialer.callrecord.impl.CallRecorderService"
             android:process="com.android.incallui" />
