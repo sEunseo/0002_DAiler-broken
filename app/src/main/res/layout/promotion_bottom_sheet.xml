@@ -57,7 +57,7 @@
             android:paddingEnd="16.0dip"
             android:stateListAnimator="@null"
             android:text="@string/ok_got_it"
-            android:textColor="@android:color/white"
+            android:textColor="@android:color/black"
             android:textSize="16.0sp" />
     </LinearLayout>
 </LinearLayout>

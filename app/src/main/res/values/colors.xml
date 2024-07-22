@@ -30,7 +30,7 @@
     <color name="incall_call_spam_background_color">@color/blocked_contact_background</color>
     <color name="incoming_answer_icon">#ff00c853</color>
     <color name="letter_tile_default_color">#ffcccccc</color>
-    <color name="letter_tile_font_color">#ffffffff</color>
+    <color name="letter_tile_font_color">#00000000</color>
     <color name="notification_action_accept">#ff097138</color>
     <color name="notification_action_answer_video">#ff097138</color>
     <color name="notification_action_color_filter">@color/secondary_text_default_material_light
@@ -50,11 +50,12 @@
     <color name="rtt_transcript_primary_color_dark">#ff263238</color>
     <color name="spam_contact_background">#ffa52714</color>
     <color name="videocall_overlay_background_color">#7e000000</color>
+    <color name="black">#ff000000</color>
 
     <color name="md_theme_light_primary">#2A56C6</color>
     <color name="md_theme_light_onPrimary">#FFFFFF</color>
-    <color name="md_theme_light_secondary">#595E72</color>
-    <color name="md_theme_light_onSecondary">#FFFFFF</color>
+    <color name="md_theme_light_secondary">#000000</color>
+    <color name="md_theme_light_onSecondary">#000000</color>
     <color name="md_theme_light_secondaryContainer">#DDE1F9</color>
     <color name="md_theme_light_onSecondaryContainer">#161B2C</color>
     <color name="md_theme_light_tertiary">#745470</color>
@@ -76,9 +77,9 @@
     <color name="md_theme_light_inverseSurface">#303034</color>
     <color name="md_theme_light_inversePrimary">#B5C4FF</color>
     <color name="md_theme_dark_primary">#2A56C6</color>
-    <color name="md_theme_dark_onPrimary">#00297A</color>
-    <color name="md_theme_dark_primaryContainer">#003DAB</color>
-    <color name="md_theme_dark_onPrimaryContainer">#DBE1FF</color>
+    <color name="md_theme_dark_onPrimary">#000000</color>
+    <color name="md_theme_dark_primaryContainer">#CAE9FF</color>
+    <color name="md_theme_dark_onPrimaryContainer">#000000</color>
     <color name="md_theme_dark_secondary">#C1C5DD</color>
     <color name="md_theme_dark_onSecondary">#2B3042</color>
     <color name="md_theme_dark_secondaryContainer">#414659</color>
