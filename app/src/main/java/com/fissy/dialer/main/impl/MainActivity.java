@@ -18,16 +18,26 @@ package com.fissy.dialer.main.impl;
 
 import static com.fissy.dialer.app.settings.DialerSettingsActivity.PrefsFragment.getThemeButtonBehavior;
 
+import android.Manifest;
 import android.app.Activity;
 import android.app.role.RoleManager;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
+import android.provider.Settings;
 import android.telecom.TelecomManager;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import com.fissy.dialer.R;
@@ -42,13 +52,11 @@ import com.fissy.dialer.interactions.PhoneNumberInteraction.InteractionErrorList
 
 import java.util.Objects;
 
-
 public class MainActivity extends AppCompatActivity
         implements com.fissy.dialer.main.MainActivityPeer.PeerSupplier,
         // TODO(calderwoodra): remove these 2 interfaces when we migrate to new speed dial fragment
         InteractionErrorListener,
         DisambigDialogDismissedListener {
-
 
     public static Activity main;
     private com.fissy.dialer.main.MainActivityPeer activePeer;
@@ -67,6 +75,36 @@ public class MainActivity extends AppCompatActivity
      * @param context Context of the application package implementing MainActivity class.
      * @return intent for MainActivity.class
      */
+    private final ActivityResultLauncher<Intent> setDefaultDialerLauncher = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            result -> {
+                if (result.getResultCode() == Activity.RESULT_OK) {
+                    LogUtil.enterBlock("Default dialer set successfully");
+                } else {
+                    LogUtil.enterBlock("Failed to set default dialer");
+                }
+            }
+    );
+
+    private final ActivityResultLauncher<Intent> manageStoragePermissionLauncher = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            result -> {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                    if (Environment.isExternalStorageManager()) {
+                        LogUtil.enterBlock("Manage storage permission granted");
+                        Intent intent = new Intent("com.fissy.dialer.MANAGE_STORAGE_PERMISSION_RESULT");
+                        intent.putExtra("permissionGranted", true);
+                        LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
+                    } else {
+                        LogUtil.enterBlock("Manage storage permission not granted");
+                        Intent intent = new Intent("com.fissy.dialer.MANAGE_STORAGE_PERMISSION_RESULT");
+                        intent.putExtra("permissionGranted", false);
+                        LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
+                    }
+                }
+            }
+    );
+
     public static Intent getIntent(Context context) {
         return new Intent(context, MainActivity.class)
                 .setAction(Intent.ACTION_VIEW)
@@ -91,16 +129,22 @@ public class MainActivity extends AppCompatActivity
         main = this;
         LogUtil.enterBlock("MainActivity.onCreate");
         // If peer was set by the super, don't reset it.
+
         activePeer = getNewPeer();
         activePeer.onActivityCreate(savedInstanceState);
 
         showBlockReportSpamDialogReceiver =
                 new ShowBlockReportSpamDialogReceiver(getSupportFragmentManager());
-        setdialer();
+
+        setDialer();
+        checkManageStoragePermission();
+
+        LocalBroadcastManager.getInstance(this).registerReceiver(
+                manageStoragePermissionReceiver, new IntentFilter("com.fissy.dialer.REQUEST_MANAGE_STORAGE_PERMISSION")
+        );
     }
 
-    // function to set default dialer
-    private void setdialer() {
+    private void setDialer() {
         TelecomManager manager = (TelecomManager) getSystemService(Context.TELECOM_SERVICE);
         if (Objects.equals(manager.getDefaultDialerPackage(), getPackageName())) {
             LogUtil.enterBlock("App Already Default Dialer");
@@ -110,12 +154,33 @@ public class MainActivity extends AppCompatActivity
     }
 
     private void launchSetDefaultDialerIntent() {
-        RoleManager roleManager;
-        roleManager = (RoleManager) getSystemService(Context.ROLE_SERVICE);
+        RoleManager roleManager = (RoleManager) getSystemService(Context.ROLE_SERVICE);
         Intent intent = roleManager.createRequestRoleIntent(RoleManager.ROLE_DIALER);
-        startActivityForResult(intent, ActivityRequestCodes.DEFAULT_DIALER);
+        setDefaultDialerLauncher.launch(intent);
     }
 
+    private void checkManageStoragePermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            if (!Environment.isExternalStorageManager()) {
+                Intent intent = new Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION,
+                        Uri.parse("package:" + getPackageName()));
+                manageStoragePermissionLauncher.launch(intent);
+            }
+        }
+    }
+
+    private final BroadcastReceiver manageStoragePermissionReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                if (!Environment.isExternalStorageManager()) {
+                    Intent manageStorageIntent = new Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION,
+                            Uri.parse("package:" + getPackageName()));
+                    manageStoragePermissionLauncher.launch(manageStorageIntent);
+                }
+            }
+        }
+    };
 
     protected com.fissy.dialer.main.MainActivityPeer getNewPeer() {
         return new MainActivityPeer(this);
@@ -173,12 +238,6 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        activePeer.onActivityResult(requestCode, resultCode, data);
-    }
-
-    @Override
     public void onBackPressed() {
         if (activePeer.onBackPressed()) {
             return;
@@ -205,12 +264,11 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public void onDisambigDialogDismissed() {
-        // Don't do anything; the app will remain open with favorites tiles displayed.
+        // Do nothing; the app will remain open with favorites tiles displayed.
     }
 
     @Override
     public com.fissy.dialer.main.MainActivityPeer getPeer() {
         return activePeer;
     }
-
 }

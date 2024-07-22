@@ -18,13 +18,17 @@ package com.fissy.dialer.callrecord.impl;
 
 import android.Manifest;
 import android.app.Service;
+import android.content.BroadcastReceiver;
 import android.content.ContentUris;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.content.ContentValues;
 import android.media.MediaRecorder;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Environment;
 import android.os.IBinder;
 import android.os.ParcelFileDescriptor;
@@ -32,6 +36,8 @@ import android.os.RemoteException;
 import android.provider.MediaStore;
 import android.text.TextUtils;
 import android.util.Log;
+
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import com.fissy.dialer.R;
 import com.fissy.dialer.callrecord.CallRecording;
@@ -41,14 +47,15 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
-import java.util.Objects;
 
 public class CallRecorderService extends Service {
     private static final String TAG = "CallRecorderService";
     private static final boolean DBG = false;
+    private static final String CHANNEL_ID = "call_recording";
     private final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyMMdd_HHmmssSSS", Locale.US);
     private MediaRecorder mMediaRecorder = null;
     private CallRecording mCurrentRecording = null;
+
     private final ICallRecorderService.Stub mBinder = new ICallRecorderService.Stub() {
         @Override
         public CallRecording stopRecording() {
@@ -77,12 +84,25 @@ public class CallRecorderService extends Service {
 
     @Override
     public void onCreate() {
+        super.onCreate();
         if (DBG) Log.d(TAG, "Creating CallRecorderService");
+
+        LocalBroadcastManager.getInstance(this).registerReceiver(
+                manageStoragePermissionResultReceiver, new IntentFilter("com.fissy.dialer.MANAGE_STORAGE_PERMISSION_RESULT")
+        );
     }
 
     @Override
     public IBinder onBind(Intent intent) {
         return mBinder;
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        if (DBG) Log.d(TAG, "Destroying CallRecorderService");
+
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(manageStoragePermissionResultReceiver);
     }
 
     private int getAudioSource() {
@@ -109,31 +129,37 @@ public class CallRecorderService extends Service {
 
     private synchronized boolean startRecordingInternal(String phoneNumber, long creationTime) {
         if (mMediaRecorder != null) {
-            if (DBG) {
-                Log.d(TAG, "Start called with recording in progress, stopping current recording");
-            }
+            Log.d(TAG, "Start called with recording in progress, stopping current recording");
             stopRecordingInternal();
         }
 
-        if (checkSelfPermission(Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED ||
-                checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED ||
-                checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+        if (checkSelfPermission(Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
             Log.w(TAG, "Record audio permission not granted, can't record call");
             return false;
         }
 
-        if (DBG) Log.d(TAG, "Starting recording");
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            if (!Environment.isExternalStorageManager()) {
+                Log.w(TAG, "Manage storage permission not granted, can't record call");
+                requestManageStoragePermission();
+                return false;
+            }
+        } else {
+            if (checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+                Log.w(TAG, "Write external storage permission not granted, can't record call");
+                return false;
+            }
+        }
+
+        Log.d(TAG, "Starting recording");
 
         mMediaRecorder = new MediaRecorder();
         try {
             int audioSource = getAudioSource();
             int formatChoice = getAudioFormatChoice();
-            if (DBG) Log.d(TAG, "Creating media recorder with audio source " + audioSource);
             mMediaRecorder.setAudioSource(audioSource);
-            mMediaRecorder.setOutputFormat(formatChoice == 0
-                    ? MediaRecorder.OutputFormat.AMR_WB : MediaRecorder.OutputFormat.MPEG_4);
-            mMediaRecorder.setAudioEncoder(formatChoice == 0
-                    ? MediaRecorder.AudioEncoder.AMR_WB : MediaRecorder.AudioEncoder.AAC);
+            mMediaRecorder.setOutputFormat(formatChoice == 0 ? MediaRecorder.OutputFormat.AMR_WB : MediaRecorder.OutputFormat.MPEG_4);
+            mMediaRecorder.setAudioEncoder(formatChoice == 0 ? MediaRecorder.AudioEncoder.AMR_WB : MediaRecorder.AudioEncoder.AAC);
         } catch (IllegalStateException e) {
             Log.w(TAG, "Error initializing media recorder", e);
             mMediaRecorder.reset();
@@ -143,8 +169,13 @@ public class CallRecorderService extends Service {
         }
 
         String fileName = generateFilename(phoneNumber);
-        Uri uri = getContentResolver().insert(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
-                CallRecording.generateMediaInsertValues(fileName, creationTime));
+        ContentValues values = CallRecording.generateMediaInsertValues(fileName, creationTime);
+
+        Uri uri = getContentResolver().insert(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, values);
+        if (uri == null) {
+            Log.w(TAG, "Failed to create new MediaStore record.");
+            return false;
+        }
 
         try {
             ParcelFileDescriptor pfd = getContentResolver().openFileDescriptor(uri, "w");
@@ -155,12 +186,13 @@ public class CallRecorderService extends Service {
             mMediaRecorder.setOutputFile(pfd.getFileDescriptor());
             mMediaRecorder.prepare();
             mMediaRecorder.start();
-            mCurrentRecording = new CallRecording(phoneNumber, creationTime, fileName, System.currentTimeMillis(), /* mediaId */ 0);
+            mCurrentRecording = new CallRecording(phoneNumber, creationTime, fileName, System.currentTimeMillis(), ContentUris.parseId(uri));
         } catch (IOException | IllegalStateException e) {
             Log.w(TAG, "Error starting recording", e);
             mMediaRecorder.reset();
             mMediaRecorder.release();
             mMediaRecorder = null;
+            getContentResolver().delete(uri, null, null);
             return false;
         }
 
@@ -168,6 +200,23 @@ public class CallRecorderService extends Service {
     }
 
 
+    private void requestManageStoragePermission() {
+        Intent intent = new Intent("com.fissy.dialer.REQUEST_MANAGE_STORAGE_PERMISSION");
+        LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
+    }
+
+    private final BroadcastReceiver manageStoragePermissionResultReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            boolean permissionGranted = intent.getBooleanExtra("permissionGranted", false);
+            if (permissionGranted) {
+                Log.d(TAG, "Manage storage permission granted");
+                // 권한이 부여된 경우, 다시 녹음을 시도할 수 있습니다.
+            } else {
+                Log.w(TAG, "Manage storage permission not granted");
+            }
+        }
+    };
 
     private synchronized CallRecording stopRecordingInternal() {
         CallRecording recording = mCurrentRecording;
@@ -189,12 +238,6 @@ public class CallRecorderService extends Service {
             mCurrentRecording = null;
         }
         return recording;
-    }
-
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-        if (DBG) Log.d(TAG, "Destroying CallRecorderService");
     }
 
     private String generateFilename(String number) {
