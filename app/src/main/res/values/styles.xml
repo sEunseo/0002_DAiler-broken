@@ -424,14 +424,14 @@
     </style>
 
     <style name="DialerFlatButtonStyle" parent="@style/Widget.Material3.Button">
-        <item name="android:textColor">?android:colorPrimary</item>
+        <item name="android:textColor">@android:color/black</item>
         <item name="android:background">?android:selectableItemBackground</item>
         <item name="android:paddingStart">@dimen/button_horizontal_padding</item>
         <item name="android:paddingEnd">@dimen/button_horizontal_padding</item>
     </style>
 
     <style name="DialerPrimaryFlatButtonStyle" parent="@style/Widget.Material3.Button">
-        <item name="android:textColor">@android:color/white</item>
+        <item name="android:textColor">@android:color/black</item>
         <item name="android:background">@drawable/selectable_primary_flat_button</item>
         <item name="android:paddingStart">@dimen/button_horizontal_padding</item>
         <item name="android:paddingEnd">@dimen/button_horizontal_padding</item>

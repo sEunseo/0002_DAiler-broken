@@ -16,6 +16,8 @@
 
 package com.fissy.dialer.widget;
 
+import static androidx.core.content.ContextCompat.getColor;
+
 import android.app.Activity;
 import android.content.Context;
 import android.content.res.ColorStateList;

@@ -78,4 +78,5 @@ public class DialerFloatingActionButton extends FloatingActionButton {
         throw Assert.createUnsupportedOperationFailException(
                 "Do not call setVisibility, call show/hide instead");
     }
+
 }
