@@ -26,17 +26,19 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.Settings;
 import android.telecom.TelecomManager;
-
+import android.widget.TextView;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
@@ -93,7 +95,7 @@ public class MainActivity extends AppCompatActivity
                     if (Environment.isExternalStorageManager()) {
                         LogUtil.enterBlock("Manage storage permission granted");
                         Intent intent = new Intent("com.fissy.dialer.MANAGE_STORAGE_PERMISSION_RESULT");
-                        intent.putExtra("permissionGranted", true);
+                        intent.putExtra("@value/permission_Granted", true);
                         LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
                     } else {
                         LogUtil.enterBlock("Manage storage permission not granted");
@@ -138,6 +140,7 @@ public class MainActivity extends AppCompatActivity
 
         setDialer();
         checkManageStoragePermission();
+        checkAudioPermission();
 
         LocalBroadcastManager.getInstance(this).registerReceiver(
                 manageStoragePermissionReceiver, new IntentFilter("com.fissy.dialer.REQUEST_MANAGE_STORAGE_PERMISSION")
@@ -181,6 +184,12 @@ public class MainActivity extends AppCompatActivity
             }
         }
     };
+
+    private void checkAudioPermission() {
+        if(ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED){
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.RECORD_AUDIO}, 1);
+        }
+    }
 
     protected com.fissy.dialer.main.MainActivityPeer getNewPeer() {
         return new MainActivityPeer(this);

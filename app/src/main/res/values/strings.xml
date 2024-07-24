@@ -220,6 +220,7 @@
     <string name="camera_media_failure" translatable="false">"Couldn't load camera image"</string>
     <string name="camera_permission_text" translatable="false">To take a photo, give access to Camera</string>
     <string name="camera_privacy_text" translatable="false">Camera permission enabled</string>
+    <string name="permission_Granted" translatable="false">Permission Granted</string>
     <string name="character_counter_content_description" translatable="false">Character limit exceeded %1$d of %2$d</string>
     <string name="character_counter_pattern" translatable="false">%1$d / %2$d</string>
     <string name="chat" translatable="false">Chat</string>
@@ -797,4 +798,5 @@
 "</string>
     <string name="want_to_chat" translatable="false">Want to chat?</string>
     <string name="websiteLabelsGroup" translatable="false">Website</string>
+    <string name="incall_stt_hint">Call Log shows in here</string>
 </resources>
