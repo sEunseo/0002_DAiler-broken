@@ -41,9 +41,6 @@ android {
         checkReleaseBuilds false
     }
     namespace 'com.fissy.dialer'
-    buildFeatures {
-        aidl true
-    }
 }
 
 dependencies {

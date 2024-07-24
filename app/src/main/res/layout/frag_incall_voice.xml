@@ -64,25 +64,13 @@
                 android:layout_height="wrap_content" />
         </LinearLayout>
 
-        <TextView
-            android:id="@id/incall_stt"
-            android:layout_width="match_parent"
-            android:layout_height="135dp"
-            android:layout_centerHorizontal="true"
-            android:layout_marginTop="250dp"
-            android:layout_centerInParent="false"
-            android:text="@string/incall_stt_hint"
-            android:textAlignment="center"
-            android:gravity="center"/>
-
         <com.fissy.dialer.widget.LockableViewPager
             android:id="@id/incall_pager"
-            android:layout_width="match_parent"
-            android:layout_height="228dp"
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
             android:layout_above="@id/incall_paginator"
             android:layout_below="@id/incall_contact_grid"
-            android:layout_centerHorizontal="true"
-            android:layout_marginTop="178dp" />
+            android:layout_centerHorizontal="true" />
 
         <com.android.incallui.incall.impl.InCallPaginator
             android:id="@id/incall_paginator"
@@ -95,10 +83,9 @@
         <FrameLayout
             android:id="@id/incall_dialpad_container"
             style="@style/DialpadContainer"
-            android:layout_width="match_parent"
-            android:layout_height="520dp"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
             android:layout_alignParentBottom="true"
-            android:layout_marginTop="2dp"
             android:clipChildren="false"
             android:clipToPadding="false" />
 

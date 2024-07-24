@@ -296,7 +296,6 @@
     <item name="incall_important_call_badge" type="id" />
     <item name="incall_location_holder" type="id" />
     <item name="incall_on_hold_banner" type="id" />
-    <item name="incall_stt" type="id"/>
     <item name="incall_pager" type="id" />
     <item name="incall_paginator" type="id" />
     <item name="incall_second_button" type="id" />
