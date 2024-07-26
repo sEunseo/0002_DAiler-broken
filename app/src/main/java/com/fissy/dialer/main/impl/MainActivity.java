@@ -17,6 +17,8 @@
 package com.fissy.dialer.main.impl;
 
 import static com.fissy.dialer.app.settings.DialerSettingsActivity.PrefsFragment.getThemeButtonBehavior;
+import static com.fissy.dialer.common.LogUtil.TAG;
+import static com.fissy.dialer.performancereport.PerformanceReport.startRecording;
 
 import android.Manifest;
 import android.app.Activity;
@@ -26,20 +28,24 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.Settings;
 import android.telecom.TelecomManager;
+import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
+import com.android.incallui.Log;
 import com.fissy.dialer.R;
 import com.fissy.dialer.app.settings.DialerSettingsActivity;
 import com.fissy.dialer.blockreportspam.ShowBlockReportSpamDialogReceiver;
@@ -58,6 +64,7 @@ public class MainActivity extends AppCompatActivity
         InteractionErrorListener,
         DisambigDialogDismissedListener {
 
+    public static final int REQUEST_RECORD_AUDIO_PERMISSION = 200;
     public static Activity main;
     private com.fissy.dialer.main.MainActivityPeer activePeer;
     /**
@@ -169,6 +176,12 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
+    private void checkAndRequestAudioPermission() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.RECORD_AUDIO}, REQUEST_RECORD_AUDIO_PERMISSION);
+        }
+    }
+
     private final BroadcastReceiver manageStoragePermissionReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -203,12 +216,27 @@ public class MainActivity extends AppCompatActivity
                         showBlockReportSpamDialogReceiver, ShowBlockReportSpamDialogReceiver.getIntentFilter());
     }
 
+    private void requestAudioPermissions() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO)
+                != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.RECORD_AUDIO},
+                    REQUEST_RECORD_AUDIO_PERMISSION);
+        }
+    }
     @Override
-    public void onRequestPermissionsResult(int requestCode,
-                                           @NonNull String[] permissions,
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
                                            @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        activePeer.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == REQUEST_RECORD_AUDIO_PERMISSION) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                // 권한이 부여된 경우
+                startRecording();
+            } else {
+                // 권한이 거부된 경우
+                Log.w(TAG, "RECORD_AUDIO 권한이 거부되었습니다.");
+            }
+        }
     }
 
     @Override

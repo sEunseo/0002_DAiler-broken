@@ -16,6 +16,8 @@
 
 package com.fissy.dialer.callrecord.impl;
 
+import static com.fissy.dialer.main.impl.MainActivity.REQUEST_RECORD_AUDIO_PERMISSION;
+
 import android.Manifest;
 import android.app.Service;
 import android.content.BroadcastReceiver;
@@ -37,6 +39,8 @@ import android.provider.MediaStore;
 import android.text.TextUtils;
 import android.util.Log;
 
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import com.fissy.dialer.R;
@@ -135,6 +139,7 @@ public class CallRecorderService extends Service {
 
         if (checkSelfPermission(Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
             Log.w(TAG, "Record audio permission not granted, can't record call");
+            requestAudioPermissions();
             return false;
         }
 
@@ -147,6 +152,7 @@ public class CallRecorderService extends Service {
         } else {
             if (checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
                 Log.w(TAG, "Write external storage permission not granted, can't record call");
+                requestWriteExternalStoragePermission();
                 return false;
             }
         }
@@ -199,6 +205,15 @@ public class CallRecorderService extends Service {
         return true;
     }
 
+    private void requestAudioPermissions() {
+        Intent intent = new Intent("com.fissy.dialer.REQUEST_RECORD_AUDIO_PERMISSION");
+        LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
+    }
+
+    private void requestWriteExternalStoragePermission() {
+        Intent intent = new Intent("com.fissy.dialer.REQUEST_WRITE_EXTERNAL_STORAGE_PERMISSION");
+        LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
+    }
 
     private void requestManageStoragePermission() {
         Intent intent = new Intent("com.fissy.dialer.REQUEST_MANAGE_STORAGE_PERMISSION");
@@ -248,7 +263,7 @@ public class CallRecorderService extends Service {
         }
 
         int formatChoice = getAudioFormatChoice();
-        String extension = formatChoice == 0 ? ".amr" : ".m4a";
+        String extension = formatChoice == 0 ? ".mp3" : ".m4a";
         return number + "_" + timestamp + extension;
     }
 }
