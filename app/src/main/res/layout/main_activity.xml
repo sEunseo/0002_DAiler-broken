@@ -43,7 +43,7 @@
             android:contentDescription="@string/dialpad_button_content_description"
             android:src="@drawable/quantum_ic_dialpad_white_24"
             android:fillColor="@color/blocked_contact_background"
-            android:tint="@android:color/black"/>
+            android:tint="@android:color/white"/>
 
         <include
             android:id="@id/promotion_bottom_sheet"
