@@ -449,7 +449,7 @@
     <string name="listSingleContact">단일 연락처</string>
     <string name="list_filter_all_accounts">모든 연락처</string>
     <string name="list_filter_phones">전화번호가 있는 모든 연락처</string>
-    <string name="main_activity_label">전화</string>
+    <string name="main_activity_label">AI다이얼러</string>
     <string name="main_menu_call_history">통화 기록</string>
     <string name="main_menu_clear_frequents">자주 연락한 목록 지우기</string>
     <string name="main_remove_contact">제거</string>

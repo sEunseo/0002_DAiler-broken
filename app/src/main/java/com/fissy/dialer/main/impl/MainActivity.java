@@ -56,6 +56,7 @@ import com.fissy.dialer.interactions.PhoneNumberInteraction.DisambigDialogDismis
 import com.fissy.dialer.interactions.PhoneNumberInteraction.InteractionErrorCode;
 import com.fissy.dialer.interactions.PhoneNumberInteraction.InteractionErrorListener;
 
+import java.util.Map;
 import java.util.Objects;
 
 public class MainActivity extends AppCompatActivity
@@ -145,6 +146,7 @@ public class MainActivity extends AppCompatActivity
 
         setDialer();
         checkManageStoragePermission();
+        checkAndRequestRecordingPermission();
 
         LocalBroadcastManager.getInstance(this).registerReceiver(
                 manageStoragePermissionReceiver, new IntentFilter("com.fissy.dialer.REQUEST_MANAGE_STORAGE_PERMISSION")
@@ -176,11 +178,35 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
-    private void checkAndRequestAudioPermission() {
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.RECORD_AUDIO}, REQUEST_RECORD_AUDIO_PERMISSION);
+    private void checkAndRequestRecordingPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R){
+            String[] permissions = {
+                    Manifest.permission.RECORD_AUDIO,
+                    Manifest.permission.CAPTURE_AUDIO_OUTPUT
+            };
+
+            boolean allPermissionsGranted = false;
+            for (String permission : permissions) {
+                if (ContextCompat.checkSelfPermission(this, permission) != PackageManager.PERMISSION_GRANTED) {
+                    allPermissionsGranted = false;
+                    break;
+                }
+            }
+
+            if (!allPermissionsGranted) {
+                recordAudioPermissionLauncher.launch(permissions);
+            }
         }
     }
+
+    ActivityResultLauncher<String[]> recordAudioPermissionLauncher =
+            registerForActivityResult(new ActivityResultContracts.RequestMultiplePermissions(), result -> {
+                // Handle the permission grant results
+                for (Map.Entry<String, Boolean> entry : result.entrySet()) {
+                    String permissionName = entry.getKey();
+                    boolean isGranted = entry.getValue();
+                    // TODO: Process the result for each permission
+                }});
 
     private final BroadcastReceiver manageStoragePermissionReceiver = new BroadcastReceiver() {
         @Override
